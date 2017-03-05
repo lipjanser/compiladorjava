@@ -3,3 +3,5 @@ Compilador construido na linguagem Java para a gramática definida no arquivo "C
 Eu construi esse programa durante a minha graduação então talvez contenha erros, mas espero que possa servir de ajuda para aqueles que estão estudando a matéria de compiladores.
 
 Abraço!
+
+P.S.: Perdoem pelo nome no projeto! xD
