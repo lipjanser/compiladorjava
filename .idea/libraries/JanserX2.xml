@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="JanserX2">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/JanserX2/dist/JanserX2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
