@@ -1,4 +1,4 @@
-package janserx2;
+package br.com.lipjanser.compilador;
 
 public class PalavrasReservadas {
     
