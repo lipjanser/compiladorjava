@@ -1,4 +1,4 @@
-package br.com.lipjanser.compilador;
+package br.com.lipjanser.compilador.classes;
 
 /**
  * @author lipjanser

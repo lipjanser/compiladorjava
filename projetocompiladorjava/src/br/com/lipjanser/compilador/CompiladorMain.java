@@ -1,5 +1,7 @@
 package br.com.lipjanser.compilador;
 
+import br.com.lipjanser.compilador.classes.Compilador;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -31,7 +33,7 @@ import java.io.IOException;
  *
  * @author lipjanser
  */
-public class Main {
+public class CompiladorMain {
 
     public static void main(String[] args) throws IOException {
 

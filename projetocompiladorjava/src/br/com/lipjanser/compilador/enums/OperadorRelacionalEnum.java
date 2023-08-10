@@ -16,16 +16,8 @@ public enum OperadorRelacionalEnum {
         return codigoOperadorRelacional;
     }
 
-    public void setCodigoOperadorRelacional(int codigoOperadorRelacional) {
-        this.codigoOperadorRelacional = codigoOperadorRelacional;
-    }
-
     public String getDescricaoOperadorRelacional() {
         return descricaoOperadorRelacional;
-    }
-
-    public void setDescricaoOperadorRelacional(String descricaoOperadorRelacional) {
-        this.descricaoOperadorRelacional = descricaoOperadorRelacional;
     }
 
     OperadorRelacionalEnum(int codigoOperadorRelacional, String descricaoOperadorRelacional) {

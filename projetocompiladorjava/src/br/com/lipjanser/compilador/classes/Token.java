@@ -1,4 +1,4 @@
-package br.com.lipjanser.compilador;
+package br.com.lipjanser.compilador.classes;
 
 public class Token {
     private String token;
