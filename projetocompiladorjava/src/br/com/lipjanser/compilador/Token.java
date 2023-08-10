@@ -1,10 +1,10 @@
 package br.com.lipjanser.compilador;
 
 public class Token {
-    String token;
-    String classe;
-    String msgErro;
-    int num;
+    private String token;
+    private String classe;
+    private String msgErro;
+    private int num;
 
     public Token() {
         this.token = "";

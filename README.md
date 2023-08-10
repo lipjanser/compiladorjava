@@ -6,26 +6,27 @@ Abraço!
 
 # Gramática do Compilador
 
-<programa> ::= int main"("")" <bloco>
-<bloco> ::= “{“ {<decl_var>}* {<comando>}* “}”
-<decl_var> ::= <tipo> <id> {,<id>}* ";"
-<tipo> ::= int | float | char
-<comando> ::= <comando_básico> | <iteração> | if "("<expr_relacional>")" <comando> {else <comando>}?
-<comando_básico> ::= <atribuição> | <bloco>
-<iteração> ::= while "("<expr_relacional>")" <comando> | do <comando> while "("<expr_relacional>")"";"
-<atribuição> ::= <id> "=" <expr_arit> ";"
-<expr_relacional> ::= <expr_arit> <op_relacional> <expr_arit>
-<expr_arit> ::= <termo> <expr_arit'>
-<expr_arit'> ::= "+" <termo> <expr_arit'>
-<expr_arit'> ::= "-" <termo> <expr_arit'>
-<expr_arit'> ::= VAZIO
-<termo> ::= <fator> <termo'>
-<termo'> ::= "*" <fator> <termo'>
-<termo'> ::= “/” <fator> <termo'>
-<termo'> ::= VAZIO
-<fator> ::= “(“ <expr_arit> “)”
-<fator> ::= <id>
-<fator> ::= <real>
-<fator> ::= <inteiro>
-<fator> ::= <char>
+-programa- ::= int main"("")" -bloco- <br/>
+-bloco- ::= "{" {-decl_var-}* {-comando-}* "}" <br/>
+-decl_var- ::= -tipo- -id- {,-id-}* ";" <br/>
+-tipo- ::= int | float | char <br/>
+-comando- ::= -comando_básico- | -iteração- | if "("-expr_relacional-")" -comando- {else -comando-}? <br/>
+-comando_básico- ::= -atribuição- | -bloco- <br/>
+-iteração- ::= while "("-expr_relacional-")" -comando- | do -comando- while "("-expr_relacional-")"";" <br/>
+-atribuição- ::= -id- "=" -expr_arit- ";" <br/>
+-expr_relacional- ::= -expr_arit- -op_relacional- -expr_arit- <br/>
+-expr_arit- ::= -termo- -expr_arit'- <br/>
+-expr_arit'- ::= "+" -termo- -expr_arit'- <br/>
+-expr_arit'- ::= "-" -termo- -expr_arit'- <br/>
+-expr_arit'- ::= VAZIO <br/>
+-termo- ::= -fator- -termo'- <br/>
+-termo'- ::= "*" -fator- -termo'- <br/>
+-termo'- ::= “/” -fator- -termo'- <br/>
+-termo'- ::= VAZIO <br/>
+-fator- ::= “(“ -expr_arit- “)” <br/>
+-fator- ::= -id- <br/>
+-fator- ::= -real- <br/>
+-fator- ::= -inteiro- <br/>
+-fator- ::= -char- <br/>
+
 

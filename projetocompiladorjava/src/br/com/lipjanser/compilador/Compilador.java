@@ -4,52 +4,23 @@ package br.com.lipjanser.compilador;
  * @author lipjanser
  */
 
+import br.com.lipjanser.compilador.enums.*;
+
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class Compilador {
 
     private Token tk;
     private char lookahead = ' ';
-    private PalavrasReservadas palReserv = new PalavrasReservadas();
     private int linhas = 1;
     private int colunas = 1;
 
-    public static final int COMENTARIO = -3;
-    public static final int MENSAGEM_ERRO = -2;
-    public static final int EOF = -1;
-    public static final int ID = 0;
-    public static final int OP_REL_MENOR = 1;
-    public static final int OP_REL_MAIOR = 2;
-    public static final int OP_REL_MENOR_IGUAL = 3;
-    public static final int OP_REL_MAIOR_IGUAL = 4;
-    public static final int OP_REL_IGUAL = 5;
-    public static final int OP_REL_DIF = 6;
-    public static final int OP_ARIT_SOMA = 7;
-    public static final int OP_ARIT_SUB = 8;
-    public static final int OP_ARIT_MULT = 9;
-    public static final int OP_ARIT_DIV = 10;
-    public static final int OP_ARIT_ATRIBUICAO = 11;
-    public static final int ESP_ABRE_PARENT = 12;
-    public static final int ESP_FECHA_PARENT = 13;
-    public static final int ESP_ABRE_CHAVES = 14;
-    public static final int ESP_FECHA_CHAVES = 15;
-    public static final int ESP_VIRGULA = 16;
-    public static final int ESP_PONTO_VIRGULA = 17;
-    public static final int CONST_INT = 18;
-    public static final int CONST_FLOAT = 19;
-    public static final int CONST_CHAR = 20;
-    public static final int PAL_RESERV_MAIN = 21;
-    public static final int PAL_RESERV_IF = 22;
-    public static final int PAL_RESERV_ELSE = 23;
-    public static final int PAL_RESERV_WHILE = 24;
-    public static final int PAL_RESERV_DO = 25;
-    public static final int PAL_RESERV_FOR = 26;
-    public static final int PAL_RESERV_INT = 27;
-    public static final int PAL_RESERV_FLOAT = 28;
-    public static final int PAL_RESERV_CHAR = 29;
-
+    /**
+     * Método que ignora caracteres espaço em branco, quebras de linha e tabulação e incrementa o contador de linhas e colunas.
+     *
+     * @param arq Arquivo
+     */
     private void getNoBlank(BufferedReader arq) throws IOException {
         while (lookahead == ' ' || lookahead == '\n' || lookahead == '\t' || lookahead == '\r') {
             if (lookahead == '\t') {
@@ -64,170 +35,175 @@ public class Compilador {
         }
     }
 
-    private Token scanner(BufferedReader arq) throws IOException { //Enviar arquivo por parametro!
+    /**
+     * Método que retorna o próximo token válido.
+     *
+     * @param arquivo Arquivo
+     * @return Retorna o próximo token válido.
+     */
+    private Token scanner(BufferedReader arquivo) throws IOException {
         Token token = new Token();
-        String buffer = "";
+        StringBuilder buffer = new StringBuilder("");
 
-        getNoBlank(arq);
+        this.getNoBlank(arquivo);
 
         if (Character.isLetter(lookahead) || lookahead == '_') {
-            buffer = buffer + lookahead;
+            buffer.append(lookahead);
             colunas++;
-            lookahead = (char) arq.read();//Guarda no buffer e Lê do arquivo
+            lookahead = (char) arquivo.read();// Guarda no buffer e Lê do arquivo
             while (Character.isLetterOrDigit(lookahead) || lookahead == '_') {
-                buffer = buffer + lookahead;
+                buffer.append(lookahead);
                 colunas++;
-                lookahead = (char) arq.read();//Guarda no buffer e Lê do arquivo
+                lookahead = (char) arquivo.read();// Guarda no buffer e Lê do arquivo
             }
-            token.token = buffer;
+            token.setToken(buffer.toString());
             isPalavraReservada(token);
             // Guarda o buffer no Objeto tk, verifica se é palavra reservada e retorna!
             return token;
         }
 
         if (Character.isDigit(lookahead)) {
-            buffer = buffer + lookahead; //Guarda no buffer e Lê do arquivo
+            buffer.append(lookahead); //Guarda no buffer e Lê do arquivo
             colunas++;
-            lookahead = (char) arq.read();
+            lookahead = (char) arquivo.read();
             while (Character.isDigit(lookahead)) {
-                buffer = buffer + lookahead; //Guarda no buffer e Lê do arquivo
+                buffer.append(lookahead); //Guarda no buffer e Lê do arquivo
                 colunas++;
-                lookahead = (char) arq.read();
+                lookahead = (char) arquivo.read();
                 if (lookahead == '.') {
-                    buffer = buffer + lookahead; //Guarda no buffer e Lê do arquivo
+                    buffer.append(lookahead); //Guarda no buffer e Lê do arquivo
                     colunas++;
-                    lookahead = (char) arq.read();
+                    lookahead = (char) arquivo.read();
+                    //Erro: falta digitos após o ponto
                     if (Character.isDigit(lookahead)) {
-                        buffer = buffer + lookahead; //Guarda no buffer e Lê do arquivo
+                        buffer.append(lookahead); //Guarda no buffer e Lê do arquivo
                         colunas++;
-                        lookahead = (char) arq.read();
+                        lookahead = (char) arquivo.read();
                         while (Character.isDigit(lookahead)) {
-                            buffer = buffer + lookahead; //Guarda no buffer e Lê do arquivo
+                            buffer.append(lookahead); //Guarda no buffer e Lê do arquivo
                             colunas++;
-                            lookahead = (char) arq.read();
+                            lookahead = (char) arquivo.read();
                         }
 
-                        token.token = buffer;
-                        token.num = CONST_FLOAT;
-                        token.classe = "Const. FLOAT";
-                        return token;
+                        token.setToken(buffer.toString());
+                        token.setNum(ConstantesEnum.CONSTANTEFLOAT.getCodigoConstante());
+                        token.setClasse("Const. FLOAT");
                     } else {
-                        token.msgErro = "Erro: falta digitos após '.' .";
-                        token.num = MENSAGEM_ERRO;
-                        return token; //Erro: falta digitos após o ponto
+                        token.setMsgErro("Erro: falta digitos após '.' .");
+                        token.setNum(OutrosCodigosEnum.MENSAGEM_ERRO.getCodigo());
                     }
+                    return token;
                 }
             }
             if (lookahead != '.') {
-                token.token = buffer;
-                token.num = CONST_INT;
-                token.classe = "Const. INT";
+                token.setToken(buffer.toString());
+                token.setNum(ConstantesEnum.CONSTANTEINT.getCodigoConstante());
+                token.setClasse("Const. INT");
                 return token;
             }
 
         }
         if (lookahead == '.') {
-            buffer = buffer + lookahead; //Guarda no buffer e Lê do arquivo
+            buffer.append(lookahead); //Guarda no buffer e Lê do arquivo
             colunas++;
-            lookahead = (char) arq.read();
+            lookahead = (char) arquivo.read();
             if (Character.isDigit(lookahead)) {
-                buffer = buffer + lookahead; //Guarda no buffer e Lê do arquivo
+                buffer.append(lookahead); //Guarda no buffer e Lê do arquivo
                 colunas++;
-                lookahead = (char) arq.read();
+                lookahead = (char) arquivo.read();
                 while (Character.isDigit(lookahead)) {
-                    buffer = buffer + lookahead; //Guarda no buffer e Lê do arquivo
+                    buffer.append(lookahead); //Guarda no buffer e Lê do arquivo
                     colunas++;
-                    lookahead = (char) arq.read();
+                    lookahead = (char) arquivo.read();
                 }
             } else {
-                token.msgErro = "Erro: falta digitos após '.' .";
-                token.num = MENSAGEM_ERRO;
+                token.setMsgErro("Erro: falta digitos após '.' .");
+                token.setNum(OutrosCodigosEnum.MENSAGEM_ERRO.getCodigo());
                 return token; //Erro: falta digitos após o ponto
             }
-            token.token = buffer;
-            token.classe = "Const. FLOAT";
-            token.num = CONST_FLOAT;// Guarda o buffer no Objeto tk, verifica se é constante int ou float e retorna!
+            token.setToken(buffer.toString());
+            token.setClasse("Const. FLOAT");
+            token.setNum(ConstantesEnum.CONSTANTEFLOAT.getCodigoConstante()); // Guarda o buffer no Objeto tk, verifica se é constante int ou float e retorna!
             return token;
         }
 
         if (lookahead == '\'') {
             colunas++;
-            lookahead = (char) arq.read(); //Não armazena no buffer, apenas lê do arquivo
+            lookahead = (char) arquivo.read(); //Não armazena no buffer, apenas lê do arquivo
+            //Erro: formacao incorreta de constante char
             if (Character.isLetterOrDigit(lookahead)) {
-                buffer = buffer + lookahead; //Armazena no buffer e lê do arquivo
+                buffer.append(lookahead); //Armazena no buffer e lê do arquivo
                 colunas++;
-                lookahead = (char) arq.read();
+                lookahead = (char) arquivo.read();
+                //Erro: formacao incorreta de constante char
                 if (lookahead == '\'') {
                     colunas++;
-                    token.token = buffer;
-                    token.num = CONST_CHAR;
-                    token.classe = "Const. CHAR"; // Guarda o buffer no Objeto tk, classifica-o como constante char e retorna!
-                    lookahead = (char) arq.read();
-                    return token;
+                    token.setToken(buffer.toString());
+                    token.setNum(ConstantesEnum.CONSTANTECHAR.getCodigoConstante());
+                    token.setClasse("Const. CHAR"); // Guarda o buffer no Objeto tk, classifica-o como constante char e retorna!
+                    lookahead = (char) arquivo.read();
                 } else {
-                    token.token = buffer + lookahead;
-                    token.msgErro = "Erro:formacao incorreta de constante char";
-                    token.num = MENSAGEM_ERRO;
-                    return token; //Erro:formacao incorreta de constante char
+                    token.setToken(buffer.append(lookahead).toString());
+                    token.setMsgErro("Erro:formacao incorreta de constante char");
+                    token.setNum(OutrosCodigosEnum.MENSAGEM_ERRO.getCodigo());
                 }
             } else {
-                token.msgErro = "Erro:formacao incorreta de constante char";
-                token.num = MENSAGEM_ERRO;
-                return token; //Erro:formacao incorreta de constante char
+                token.setMsgErro("Erro:formacao incorreta de constante char");
+                token.setNum(OutrosCodigosEnum.MENSAGEM_ERRO.getCodigo());
             }
+            return token;
         }
 
         if (lookahead == '+') {
-            buffer = buffer + lookahead; //Armazena no buffer e lê do arquivo
+            buffer.append(lookahead); //Armazena no buffer e lê do arquivo
             colunas++;
-            lookahead = (char) arq.read();
-            token.token = buffer;
-            token.classe = "Soma";
-            token.num = OP_ARIT_SOMA;
+            lookahead = (char) arquivo.read();
+            token.setToken(buffer.toString());
+            token.setClasse("Soma");
+            token.setNum(OperadorAritmeticoEnum.SOMA.getCodigoOperadorAritmetico());
             return token;
         }
         if (lookahead == '-') {
-            buffer = buffer + lookahead; //Armazena no buffer e lê do arquivo
+            buffer.append(lookahead); //Armazena no buffer e lê do arquivo
             colunas++;
-            lookahead = (char) arq.read();
-            token.token = buffer;
-            token.classe = "Subtracao";
-            token.num = OP_ARIT_SUB;
+            lookahead = (char) arquivo.read();
+            token.setToken(buffer.toString());
+            token.setClasse("Subtracao");
+            token.setNum(OperadorAritmeticoEnum.SUBTRACAO.getCodigoOperadorAritmetico());
             return token;
-
         }
         if (lookahead == '*') {
-            buffer = buffer + lookahead; //Armazena no buffer e lê do arquivo
+            buffer.append(lookahead); //Armazena no buffer e lê do arquivo
             colunas++;
-            lookahead = (char) arq.read();
-            token.token = buffer;
-            token.classe = "Multiplicacao";
-            token.num = OP_ARIT_MULT;
+            lookahead = (char) arquivo.read();
+            token.setToken(buffer.toString());
+            token.setClasse("Multiplicacao");
+            token.setNum(OperadorAritmeticoEnum.MULTIPLICACAO.getCodigoOperadorAritmetico());
             return token;
         }
 
         if (lookahead == '/') {
             colunas++;
-            lookahead = (char) arq.read();
+            lookahead = (char) arquivo.read();
             if (lookahead == '/') {
                 while (lookahead != '\n') {
-                    lookahead = (char) arq.read();
+                    lookahead = (char) arquivo.read();
                     colunas++;
                     if (lookahead == '\n') {
                         colunas = 1;
                         linhas++;
-                        token.num = COMENTARIO;
-                        lookahead = (char) arq.read();
+                        token.setNum(OutrosCodigosEnum.COMENTARIO.getCodigo());
+                        lookahead = (char) arquivo.read();
                         return token;
                     }
                 }
             } else if (lookahead == '*') {
                 colunas++;
-                lookahead = (char) arq.read();
+                lookahead = (char) arquivo.read();
                 while (true) {
                     while (lookahead != '*') {
                         colunas++;
-                        lookahead = (char) arq.read();
+                        lookahead = (char) arquivo.read();
                         if (lookahead == '*') {
                             break;
                         }
@@ -235,443 +211,387 @@ public class Compilador {
                             colunas = 1;
                             linhas++;
                         }
-                        if (!arq.ready()) {
-                            token.msgErro = "(" + EOF + ") > Fim de arquivo encontrado antes do comentário ser fechado.";
-                            token.num = MENSAGEM_ERRO;
+                        if (!arquivo.ready()) {
+                            token.setMsgErro("(" + OutrosCodigosEnum.EOF.getDescricao() + ") > Fim de arquivo encontrado antes do comentário ser fechado.");
+                            token.setNum(OutrosCodigosEnum.MENSAGEM_ERRO.getCodigo());
                             return token;
                         }
                     }
                     while (lookahead == '*') {
                         colunas++;
-                        lookahead = (char) arq.read();
+                        lookahead = (char) arquivo.read();
                     }
                     if (lookahead == '/') {
-                        token.num = COMENTARIO;
-                        lookahead = (char) arq.read();
+                        token.setNum(OutrosCodigosEnum.COMENTARIO.getCodigo());
+                        lookahead = (char) arquivo.read();
                         return token;
                     }
-                    if (!arq.ready()) {
-                        token.msgErro = "Fim de arquivo encontrado antes do comentário ser fechado!";
-                        token.num = EOF;
+                    if (!arquivo.ready()) {
+                        token.setMsgErro("Fim de arquivo encontrado antes do comentário ser fechado!");
+                        token.setNum(OutrosCodigosEnum.EOF.getCodigo());
                         return token;
                     }
                 }
             } else {
-                token.token = "/";
-                token.num = OP_ARIT_DIV;
-                token.classe = "Divisao";
+                token.setToken("/");
+                token.setNum(OperadorAritmeticoEnum.DIVISAO.getCodigoOperadorAritmetico());
+                token.setClasse("Divisao");
                 return token;
             }
         }
 
         if (lookahead == '<') {
-            buffer = buffer + lookahead;
+            buffer.append(lookahead);
             colunas++;
-            lookahead = (char) arq.read(); //Guarda no Buffer e Lê do arquivo
+            lookahead = (char) arquivo.read(); // Guarda no Buffer e Lê do arquivo
             if (lookahead == '=') {
-                buffer = buffer + lookahead;
+                buffer.append(lookahead);
                 colunas++;
-                lookahead = (char) arq.read();
-                token.token = buffer;
-                token.num = OP_REL_MENOR_IGUAL;
-                token.classe = "Menor ou Igual";
-                //Guarda no Buffer e Lê do arquivo e retorna
+                lookahead = (char) arquivo.read();
+                token.setToken(buffer.toString());
+                token.setNum(OperadorRelacionalEnum.MENOROUIGUAL.getCodigoOperadorRelacional());
+                token.setClasse(OperadorRelacionalEnum.MENOROUIGUAL.getDescricaoOperadorRelacional());
+                // Guarda no Buffer e Lê do arquivo e retorna
                 return token;
             }
-            token.token = buffer;
-            token.num = OP_REL_MENOR;
-            token.classe = "Menor";
+            token.setToken(buffer.toString());
+            token.setNum(OperadorRelacionalEnum.MENORQUE.getCodigoOperadorRelacional());
+            token.setClasse(OperadorRelacionalEnum.MENORQUE.getDescricaoOperadorRelacional());
             return token;
         }
         if (lookahead == '>') {
-            buffer = buffer + lookahead;
+            buffer.append(lookahead);
             colunas++;
-            lookahead = (char) arq.read(); //Guarda no Buffer e Lê do arquivo
+            lookahead = (char) arquivo.read(); //Guarda no Buffer e Lê do arquivo
             if (lookahead == '=') {
-                buffer = buffer + lookahead;
+                buffer.append(lookahead);
                 colunas++;
-                lookahead = (char) arq.read();
-                token.token = buffer;
-                token.num = OP_REL_MAIOR_IGUAL;
-                token.classe = "Maior ou Igual";
+                lookahead = (char) arquivo.read();
+                token.setToken(buffer.toString());
+                token.setNum(OperadorRelacionalEnum.MAIOROUIGUAL.getCodigoOperadorRelacional());
+                token.setClasse(OperadorRelacionalEnum.MAIOROUIGUAL.getDescricaoOperadorRelacional());
                 //Guarda no Buffer e Lê do arquivo e retorna
                 return token;
             }
-            token.token = buffer;
-            token.num = OP_REL_MAIOR;
-            token.classe = "Maior";
+            token.setToken(buffer.toString());
+            token.setNum(OperadorRelacionalEnum.MAIORQUE.getCodigoOperadorRelacional());
+            token.setClasse(OperadorRelacionalEnum.MAIORQUE.getDescricaoOperadorRelacional());
             return token;
         }
         if (lookahead == '!') {
-            buffer = buffer + lookahead;
+            buffer.append(lookahead);
             colunas++;
-            lookahead = (char) arq.read();//Guarda no Buffer e Lê do arquivo
+            lookahead = (char) arquivo.read(); //Guarda no Buffer e Lê do arquivo
             if (lookahead == '=') {
-                buffer = buffer + lookahead;
+                buffer.append(lookahead);
                 colunas++;
-                lookahead = (char) arq.read();
-                token.token = buffer;
-                token.num = OP_REL_DIF;
-                token.classe = "Diferente";//Guarda no Buffer e Lê do arquivo
-                return token;
+                lookahead = (char) arquivo.read();
+                token.setToken(buffer.toString());
+                token.setNum(OperadorRelacionalEnum.DIFERENTEDE.getCodigoOperadorRelacional());
+                token.setClasse(OperadorRelacionalEnum.DIFERENTEDE.getDescricaoOperadorRelacional()); //Guarda no Buffer e Lê do arquivo
             } else {
-                token.msgErro = "Erro: O token '!' nao pode aparecer sozinho.";
-                token.num = MENSAGEM_ERRO;
-                return token;
+                token.setMsgErro("Erro: O token '!' nao pode aparecer sozinho.");
+                token.setNum(OutrosCodigosEnum.MENSAGEM_ERRO.getCodigo());
             }
+            return token;
         }
         if (lookahead == '=') {
-            buffer = buffer + lookahead;
+            buffer.append(lookahead);
             colunas++;
-            lookahead = (char) arq.read();
+            lookahead = (char) arquivo.read();
             if (lookahead == '=') {
-                buffer = buffer + lookahead;
+                buffer.append(lookahead);
                 colunas++;
-                lookahead = (char) arq.read();
-                token.token = buffer;
-                token.num = OP_REL_IGUAL;
-                token.classe = "Igual";
+                lookahead = (char) arquivo.read();
+                token.setToken(buffer.toString());
+                token.setNum(OperadorRelacionalEnum.IGUALA.getCodigoOperadorRelacional());
+                token.setClasse(OperadorRelacionalEnum.IGUALA.getDescricaoOperadorRelacional());
                 return token; //Lê do arquivo
             }
-            token.token = buffer;
-            token.num = OP_ARIT_ATRIBUICAO;
-            token.classe = "Atribuicao";
+            token.setToken(buffer.toString());
+            token.setNum(OperadorAritmeticoEnum.ATRIBUICAO.getCodigoOperadorAritmetico());
+            token.setClasse(OperadorAritmeticoEnum.ATRIBUICAO.getDescricaoOperadorAritmetico());
             return token;
         }
 
         if (lookahead == ')') {
-            buffer = buffer + lookahead;
+            buffer.append(lookahead);
             colunas++;
-            lookahead = (char) arq.read();
-            token.token = buffer;
-            token.num = ESP_FECHA_PARENT;
-            token.classe = "Fecha Parenteses";
+            lookahead = (char) arquivo.read();
+            token.setToken(buffer.toString());
+            token.setNum(CaracterEspecialEnum.FECHAPARENTESES.getCodigoCaracterEspecial());
+            token.setClasse(CaracterEspecialEnum.FECHAPARENTESES.getDescricaoCaracterEspecial());
             return token;
         }
         if (lookahead == '(') {
-            buffer = buffer + lookahead;
+            buffer.append(lookahead);
             colunas++;
-            lookahead = (char) arq.read();
-            token.token = buffer;
-            token.num = ESP_ABRE_PARENT;
-            token.classe = "Abre Parenteses";
+            lookahead = (char) arquivo.read();
+            token.setToken(buffer.toString());
+            token.setNum(CaracterEspecialEnum.ABREPARENTESES.getCodigoCaracterEspecial());
+            token.setClasse(CaracterEspecialEnum.ABREPARENTESES.getDescricaoCaracterEspecial());
             return token;
         }
         if (lookahead == '{') {
-            buffer = buffer + lookahead;
+            buffer.append(lookahead);
             colunas++;
-            lookahead = (char) arq.read();
-            token.token = buffer;
-            token.num = ESP_ABRE_CHAVES;
-            token.classe = "Abre Chaves";
+            lookahead = (char) arquivo.read();
+            token.setToken(buffer.toString());
+            token.setNum(CaracterEspecialEnum.ABRECHAVES.getCodigoCaracterEspecial());
+            token.setClasse(CaracterEspecialEnum.ABRECHAVES.getDescricaoCaracterEspecial());
             return token;
         }
         if (lookahead == '}') {
-            buffer = buffer + lookahead;
+            buffer.append(lookahead);
             colunas++;
-            lookahead = (char) arq.read();
-            token.token = buffer;
-            token.num = ESP_FECHA_CHAVES;
-            token.classe = "Fecha Chaves";
+            lookahead = (char) arquivo.read();
+            token.setToken(buffer.toString());
+            token.setNum(CaracterEspecialEnum.FECHACHAVES.getCodigoCaracterEspecial());
+            token.setClasse(CaracterEspecialEnum.FECHACHAVES.getDescricaoCaracterEspecial());
             return token;
         }
         if (lookahead == ',') {
-            buffer = buffer + lookahead;
+            buffer.append(lookahead);
             colunas++;
-            lookahead = (char) arq.read();
-            token.token = buffer;
-            token.num = ESP_VIRGULA;
-            token.classe = "Virgula";
+            lookahead = (char) arquivo.read();
+            token.setToken(buffer.toString());
+            token.setNum(CaracterEspecialEnum.VIRGULA.getCodigoCaracterEspecial());
+            token.setClasse(CaracterEspecialEnum.VIRGULA.getDescricaoCaracterEspecial());
             return token;
         }
         if (lookahead == ';') {
-            buffer = buffer + lookahead;
+            buffer.append(lookahead);
             colunas++;
-            lookahead = (char) arq.read();
-            token.token = buffer;
-            token.num = ESP_PONTO_VIRGULA;
-            token.classe = "Ponto e Virgula";
-            return token;
+            lookahead = (char) arquivo.read();
+            token.setToken(buffer.toString());
+            token.setNum(CaracterEspecialEnum.PONTOEVIRGULA.getCodigoCaracterEspecial());
+            token.setClasse(CaracterEspecialEnum.PONTOEVIRGULA.getDescricaoCaracterEspecial());
         } else {
-            if (!arq.ready()) {
-                token.msgErro = "Fim de arquivo encontrado!";
-                token.num = EOF;
+            if (!arquivo.ready()) {
+                token.setMsgErro("Fim de arquivo encontrado!");
+                token.setNum(OutrosCodigosEnum.EOF.getCodigo());
                 return token;
             }
-            token.msgErro = "Erro: caracter invalido '" + lookahead + "' encontrado.";
-            token.num = MENSAGEM_ERRO;
-            return token;
+            token.setMsgErro("Erro: caracter invalido '" + lookahead + "' encontrado.");
+            token.setNum(OutrosCodigosEnum.MENSAGEM_ERRO.getCodigo());
         }
-
+        return token;
     }
 
     private void isPalavraReservada(Token tk) {
 
-        if (tk.token.equals(palReserv.getpMain())) {
-            tk.classe = "PR - main";
-            tk.num = PAL_RESERV_MAIN;
+        if (tk.getToken().equals(PalavrasReservadasEnum.MAIN.getDescricaoPalavraReservada())) {
+            tk.setClasse("PR - main");
+            tk.setNum(PalavrasReservadasEnum.MAIN.getCodigoPalavraReservada());
             return;
         }
-        if (tk.token.equals(palReserv.getpIf())) {
-            tk.classe = "PR - if";
-            tk.num = PAL_RESERV_IF;
+        if (tk.getToken().equals(PalavrasReservadasEnum.IF.getDescricaoPalavraReservada())) {
+            tk.setClasse("PR - if");
+            tk.setNum( PalavrasReservadasEnum.IF.getCodigoPalavraReservada());
             return;
         }
-        if (tk.token.equals(palReserv.getpElse())) {
-            tk.classe = "PR - else";
-            tk.num = PAL_RESERV_ELSE;
+        if (tk.getToken().equals(PalavrasReservadasEnum.ELSE.getDescricaoPalavraReservada())) {
+            tk.setClasse("PR - else");
+            tk.setNum(PalavrasReservadasEnum.ELSE.getCodigoPalavraReservada());
             return;
         }
-        if (tk.token.equals(palReserv.getpWhile())) {
-            tk.classe = "PR - while";
-            tk.num = PAL_RESERV_WHILE;
+        if (tk.getToken().equals(PalavrasReservadasEnum.WHILE.getDescricaoPalavraReservada())) {
+            tk.setClasse("PR - while");
+            tk.setNum(PalavrasReservadasEnum.WHILE.getCodigoPalavraReservada());
             return;
         }
-        if (tk.token.equals(palReserv.getpDo())) {
-            tk.classe = "PR - do";
-            tk.num = PAL_RESERV_DO;
+        if (tk.getToken().equals(PalavrasReservadasEnum.DO.getDescricaoPalavraReservada())) {
+            tk.setClasse("PR - do");
+            tk.setNum(PalavrasReservadasEnum.DO.getCodigoPalavraReservada());
             return;
         }
-        if (tk.token.equals(palReserv.getpFor())) {
-            tk.classe = "PR - for";
-            tk.num = PAL_RESERV_FOR;
+        if (tk.getToken().equals(PalavrasReservadasEnum.FOR.getDescricaoPalavraReservada())) {
+            tk.setClasse("PR - for");
+            tk.setNum(PalavrasReservadasEnum.FOR.getCodigoPalavraReservada());
             return;
         }
-        if (tk.token.equals(palReserv.getpInt())) {
-            tk.classe = "PR - int";
-            tk.num = PAL_RESERV_INT;
+        if (tk.getToken().equals(PalavrasReservadasEnum.INT.getDescricaoPalavraReservada())) {
+            tk.setClasse("PR - int");
+            tk.setNum(PalavrasReservadasEnum.INT.getCodigoPalavraReservada());
             return;
         }
-        if (tk.token.equals(palReserv.getpFloat())) {
-            tk.classe = "PR - float";
-            tk.num = PAL_RESERV_FLOAT;
+        if (tk.getToken().equals(PalavrasReservadasEnum.FLOAT.getDescricaoPalavraReservada())) {
+            tk.setClasse("PR - float");
+            tk.setNum(PalavrasReservadasEnum.FLOAT.getCodigoPalavraReservada());
             return;
         }
-        if (tk.token.equals(palReserv.getpChar())) {
-            tk.classe = "PR - char";
-            tk.num = PAL_RESERV_CHAR;
+        if (tk.getToken().equals(PalavrasReservadasEnum.CHAR.getDescricaoPalavraReservada())) {
+            tk.setClasse("PR - char");
+            tk.setNum(PalavrasReservadasEnum.CHAR.getCodigoPalavraReservada());
             return;
         }
 
-        tk.classe = "Identificador";
-        tk.num = ID;
+        tk.setClasse("Identificador");
+        tk.setNum(OutrosCodigosEnum.ID.getCodigo());
     }
 
+    /**
+     * Método utilizado para verificar a ocorrência de comentários, uso da palavra reservada 'for' e mensagem de erro.
+     *
+     * @param arquivo Arquivo.
+     * @throws IOException
+     */
     private void checkComentError(BufferedReader arquivo) throws IOException {
 
-        while (tk.num == COMENTARIO) {
+        while (tk.getNum() == OutrosCodigosEnum.COMENTARIO.getCodigo()) {
             tk = scanner(arquivo);
         }
 
-        if (tk.num == PAL_RESERV_FOR) {
+        if (tk.getNum() == PalavrasReservadasEnum.FOR.getCodigoPalavraReservada()) {
             System.out.println("\nL/C: " + linhas + "/" + colunas + "\nErro: Operações com a palavra reservada 'for' não estão disponiveis nesta versão do aplicativo.");
             arquivo.close();
             System.exit(0);
         }
 
-        if (tk.num == MENSAGEM_ERRO) {
-            System.out.println("\nL/C: " + linhas + "/" + colunas + " " + tk.msgErro);
+        if (tk.getNum() == OutrosCodigosEnum.MENSAGEM_ERRO.getCodigo()) {
+            System.out.println("\nL/C: " + linhas + "/" + colunas + " " + tk.getMsgErro());
             arquivo.close();
             System.exit(0);
         }
 
     }
 
-    public void simboloInicial(BufferedReader arquivo) throws FileNotFoundException, IOException {
-        tk = scanner(arquivo);
-        checkComentError(arquivo);
-        System.out.println("\n-> " + tk.token);
-        programa(arquivo);
+    public void simboloInicial(BufferedReader arquivo) throws IOException {
+        this.getNextToken(arquivo);
+        this.programa(arquivo);
     }
 
     private void programa(BufferedReader arquivo) throws IOException {
 
-        if (tk.num == PAL_RESERV_INT) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
+        if (tk.getNum() == PalavrasReservadasEnum.INT.getCodigoPalavraReservada()) {
+            this.getNextToken(arquivo);
         } else {
             System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Palavra 'int' era esperada.");
-            System.out.println("Ultimo token lido '" + tk.token + "'");
+            System.out.println("Ultimo token lido '" + tk.getToken() + "'");
             arquivo.close();
             System.exit(0);
         }
 
-        if (tk.num == PAL_RESERV_MAIN) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
+        if (tk.getNum() == PalavrasReservadasEnum.MAIN.getCodigoPalavraReservada()) {
+            this.getNextToken(arquivo);
         } else {
             System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Palavra 'main' era esperada.");
-            System.out.println("Ultimo token lido '" + tk.token + "'");
+            System.out.println("Ultimo token lido '" + tk.getToken() + "'");
             arquivo.close();
             System.exit(0);
         }
 
-        if (tk.num == ESP_ABRE_PARENT) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
+        if (tk.getNum() == CaracterEspecialEnum.ABREPARENTESES.getCodigoCaracterEspecial()) {
+            this.getNextToken(arquivo);
         } else {
             System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um '(' era esperado.");
-            System.out.println("Ultimo token lido '" + tk.token + "'");
+            System.out.println("Ultimo token lido '" + tk.getToken() + "'");
             arquivo.close();
             System.exit(0);
         }
 
-        if (tk.num == ESP_FECHA_PARENT) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
+        if (tk.getNum() == CaracterEspecialEnum.FECHAPARENTESES.getCodigoCaracterEspecial()) {
+            this.getNextToken(arquivo);
         } else {
             System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um ')' era esperado.");
-            System.out.println("Ultimo token lido '" + tk.token + "'");
+            System.out.println("Ultimo token lido '" + tk.getToken() + "'");
             arquivo.close();
             System.exit(0);
         }
 
-        //System.out.println("\nPassou doido, chama bloco()!!");
+        this.bloco(arquivo);
 
-        bloco(arquivo);
-        //System.out.println("Olaaa");
-        if (tk.num != EOF) {
+        if (tk.getNum() != OutrosCodigosEnum.EOF.getCodigo()) {
             System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Há tokens fora do bloco principal.");
-            System.out.println("Ultimo token lido -> " + tk.token);
+            System.out.println("Ultimo token lido -> " + tk.getToken());
             arquivo.close();
             System.exit(0);
         }
-
-//        for(int i = 0; i < tbSimbArray.size();i++ ) {
-//            System.out.println(tbSimbArray.get(i).tipo+" "+tbSimbArray.get(i).id+" "+tbSimbArray.get(i).escopo);
-//        }
 
     }
 
     private void bloco(BufferedReader arquivo) throws IOException {
 
-        if (tk.num == ESP_ABRE_CHAVES) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
+        if (tk.getNum() == CaracterEspecialEnum.ABRECHAVES.getCodigoCaracterEspecial()) {
+            this.getNextToken(arquivo);
         } else {
             System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um '{' era esperado.");
-            System.out.println("Ultimo token lido '" + tk.token + "'");
+            System.out.println("Ultimo token lido '" + tk.getToken() + "'");
             arquivo.close();
             System.exit(0);
         }
-        //tb.escopo++;
+
         while (true) {
-            if (tk.num == PAL_RESERV_INT || tk.num == PAL_RESERV_FLOAT || tk.num == PAL_RESERV_CHAR) {
-                //     tb.tipo = tk.num;
-                declaracoes(arquivo);
-            } else {
+            if (tk.getNum() == PalavrasReservadasEnum.INT.getCodigoPalavraReservada()
+                    || tk.getNum() == PalavrasReservadasEnum.FLOAT.getCodigoPalavraReservada()
+                    || tk.getNum() == PalavrasReservadasEnum.CHAR.getCodigoPalavraReservada())
+                this.declaracoes(arquivo);
+            else
                 break;
-            }
         }
 
         while (true) {
-            if (tk.num == PAL_RESERV_IF || tk.num == ID || tk.num == ESP_ABRE_CHAVES
-                    || tk.num == PAL_RESERV_DO || tk.num == PAL_RESERV_WHILE) {
-                comando(arquivo);
-            } else {
+            if (tk.getNum() == PalavrasReservadasEnum.IF.getCodigoPalavraReservada()
+                    || tk.getNum() == OutrosCodigosEnum.ID.getCodigo()
+                    || tk.getNum() == CaracterEspecialEnum.ABRECHAVES.getCodigoCaracterEspecial()
+                    || tk.getNum() == PalavrasReservadasEnum.DO.getCodigoPalavraReservada()
+                    || tk.getNum() == PalavrasReservadasEnum.WHILE.getCodigoPalavraReservada())
+                this.comando(arquivo);
+            else
                 break;
-            }
         }
 
-        if (tk.num == ESP_FECHA_CHAVES) {
-            //   tb.escopo--;
-
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
+        if (tk.getNum() == CaracterEspecialEnum.FECHACHAVES.getCodigoCaracterEspecial()) {
+            this.getNextToken(arquivo);
         } else {
             System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um '}' era esperado.");
-            System.out.println("Ultimo token lido '" + tk.token + "'");
+            System.out.println("Ultimo token lido '" + tk.getToken() + "'");
             arquivo.close();
             System.exit(0);
         }
-
     }
 
     private void declaracoes(BufferedReader arquivo) throws IOException {
 
-        if (tk.num == PAL_RESERV_INT || tk.num == PAL_RESERV_FLOAT || tk.num == PAL_RESERV_CHAR) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
+        if (tk.getNum() == PalavrasReservadasEnum.INT.getCodigoPalavraReservada()
+                || tk.getNum() == PalavrasReservadasEnum.FLOAT.getCodigoPalavraReservada()
+                || tk.getNum() == PalavrasReservadasEnum.CHAR.getCodigoPalavraReservada()) {
+            this.getNextToken(arquivo);
         }
 
-        if (tk.num == ID) {
-            // tb.id = tk.token;
-//           for(int i = 0;i < tbSimbArray.size();i++) {
-//                if(tb.id.equals(tbSimbArray.get(i).id)&& tb.escopo == tbSimbArray.get(i).escopo){
-//                   System.out.println("O identificador '"+tb.id+"' já foi declarado neste escopo!");
-//                   System.out.println("\nL/C: "+linhas+"/"+colunas+" Erro: Um identificador era esperado.'");
-//                   System.out.println("Ultimo token lido '"+tk.token+"'");
-//                   arquivo.close();
-//                   System.exit(0);
-//                }
-//            }
-//           tbAux = new TabelaSimbolos();
-//           tbAux.id = tb.id;
-//           tbAux.tipo = tb.tipo;
-//           tbAux.escopo = tb.escopo;
-//           tbSimbArray.push(tbAux);
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
+        if (tk.getNum() == OutrosCodigosEnum.ID.getCodigo()) {
+            this.getNextToken(arquivo);
         } else {
             System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um identificador era esperado.");
-            System.out.println("Ultimo token lido '" + tk.token + "'");
+            System.out.println("Ultimo token lido '" + tk.getToken() + "'");
             arquivo.close();
             System.exit(0);
         }
 
-        while (tk.num != ESP_PONTO_VIRGULA) {
-            if (tk.num == ESP_VIRGULA) {
-                tk = scanner(arquivo);
-                checkComentError(arquivo);
-                System.out.println("\n-> " + tk.token);
-                if (tk.num == ID) {
-//                    tb.id = tk.token;
-//                    for(int i = 0;i < tbSimbArray.size();i++) {
-//                         if(tb.id.equals(tbSimbArray.get(i).id)&& tb.escopo == tbSimbArray.get(i).escopo){
-//                             System.out.println("O identificador '"+tb.id+"' já foi declarado neste escopo!");
-//                             System.out.println("\nL/C: "+linhas+"/"+colunas+" Erro: Um identificador era esperado.'");
-//                             System.out.println("Ultimo token lido -> "+tk.token);
-//                             arquivo.close();
-//                             System.exit(0);
-//                         }
-//                    }
-//                    tbAux = new TabelaSimbolos();
-//                    tbAux.id = tb.id;
-//                    tbAux.tipo = tb.tipo;
-//                    tbAux.escopo = tb.escopo;
-//                    tbSimbArray.push(tbAux); 
-                    tk = scanner(arquivo);
-                    checkComentError(arquivo);
-                    System.out.println("\n-> " + tk.token);
+        while (tk.getNum() != CaracterEspecialEnum.PONTOEVIRGULA.getCodigoCaracterEspecial()) {
+            if (tk.getNum() == CaracterEspecialEnum.VIRGULA.getCodigoCaracterEspecial()) {
+                this.getNextToken(arquivo);
+                if (tk.getNum() == OutrosCodigosEnum.ID.getCodigo()) {
+                    this.getNextToken(arquivo);
                 } else {
                     System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um identificador era esperado.");
-                    System.out.println("Ultimo token lido '" + tk.token + "'");
+                    System.out.println("Ultimo token lido '" + tk.getToken() + "'");
                     arquivo.close();
                     System.exit(0);
                 }
             } else {
                 System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um identificador ou ';' era esperado.");
-                System.out.println("Ultimo token lido '" + tk.token + "'");
+                System.out.println("Ultimo token lido '" + tk.getToken() + "'");
                 arquivo.close();
                 System.exit(0);
             }
         }
 
-        if (tk.num == ESP_PONTO_VIRGULA) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
+        if (tk.getNum() == CaracterEspecialEnum.PONTOEVIRGULA.getCodigoCaracterEspecial()) {
+            this.getNextToken(arquivo);
         } else {
             System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um ';' era esperado.");
-            System.out.println("Ultimo token lido '" + tk.token + "'");
+            System.out.println("Ultimo token lido '" + tk.getToken() + "'");
             arquivo.close();
             System.exit(0);
         }
@@ -679,124 +599,111 @@ public class Compilador {
 
     private void comando(BufferedReader arquivo) throws IOException {
 
-        if (tk.num == PAL_RESERV_IF) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
-            if (tk.num == ESP_ABRE_PARENT) {
-                tk = scanner(arquivo);
-                checkComentError(arquivo);
-                System.out.println("\n-> " + tk.token);
+        if (tk.getNum() == PalavrasReservadasEnum.IF.getCodigoPalavraReservada()) {
+            this.getNextToken(arquivo);
+            if (tk.getNum() == CaracterEspecialEnum.ABREPARENTESES.getCodigoCaracterEspecial()) {
+                this.getNextToken(arquivo);
             } else {
                 System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um '(' era esperado.");
-                System.out.println("Ultimo token lido '" + tk.token);
+                System.out.println("Ultimo token lido '" + tk.getToken());
                 arquivo.close();
                 System.exit(0);
             }
 
-            exprRelacional(arquivo);
+            this.exprRelacional(arquivo);
 
-            if (tk.num == ESP_FECHA_PARENT) {
-                tk = scanner(arquivo);
-                checkComentError(arquivo);
-                System.out.println("\n-> " + tk.token);
+            if (tk.getNum() == CaracterEspecialEnum.FECHAPARENTESES.getCodigoCaracterEspecial()) {
+                this.getNextToken(arquivo);
             } else {
                 System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um ')' era esperado.");
-                System.out.println("Ultimo token lido '" + tk.token + "'");
+                System.out.println("Ultimo token lido '" + tk.getToken() + "'");
                 arquivo.close();
                 System.exit(0);
             }
 
-            comando(arquivo);
+            this.comando(arquivo);
 
-            if (tk.num == PAL_RESERV_ELSE) {
-                tk = scanner(arquivo);
-                checkComentError(arquivo);
-                System.out.println("\n-> " + tk.token);
-                comando(arquivo);
+            if (tk.getNum() == PalavrasReservadasEnum.ELSE.getCodigoPalavraReservada()) {
+                this.getNextToken(arquivo);
+                this.comando(arquivo);
                 return;
             }
             return;
         }
 
-        if (tk.num == ID || tk.num == ESP_ABRE_CHAVES) {
-            comandoBasico(arquivo);
+        if (tk.getNum() == OutrosCodigosEnum.ID.getCodigo()
+                || tk.getNum() == CaracterEspecialEnum.ABRECHAVES.getCodigoCaracterEspecial()) {
+            this.comandoBasico(arquivo);
             return;
         }
 
-        if (tk.num == PAL_RESERV_DO || tk.num == PAL_RESERV_WHILE) {
-            iteracao(arquivo);
-            return;
+        if (tk.getNum() == PalavrasReservadasEnum.DO.getCodigoPalavraReservada()
+                || tk.getNum() == PalavrasReservadasEnum.WHILE.getCodigoPalavraReservada()) {
+            this.iteracao(arquivo);
         } else {
             System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um comando era esperado.");
-            System.out.println("Ultimo token lido '" + tk.token + "'");
+            System.out.println("Ultimo token lido '" + tk.getToken() + "'");
             arquivo.close();
             System.exit(0);
         }
-
     }
-
 
     private void exprRelacional(BufferedReader arquivo) throws IOException {
 
-        exprAritmetica(arquivo);
+        this.exprAritmetica(arquivo);
 
-        if (tk.num == OP_REL_DIF || tk.num == OP_REL_IGUAL || tk.num == OP_REL_MAIOR
-                || tk.num == OP_REL_MAIOR_IGUAL || tk.num == OP_REL_MENOR || tk.num == OP_REL_MENOR
-                || tk.num == OP_REL_MENOR_IGUAL) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
+        if (tk.getNum() == OperadorRelacionalEnum.DIFERENTEDE.getCodigoOperadorRelacional()
+                || tk.getNum() == OperadorRelacionalEnum.IGUALA.getCodigoOperadorRelacional()
+                || tk.getNum() == OperadorRelacionalEnum.MAIORQUE.getCodigoOperadorRelacional()
+                || tk.getNum() == OperadorRelacionalEnum.MAIOROUIGUAL.getCodigoOperadorRelacional()
+                || tk.getNum() == OperadorRelacionalEnum.MENORQUE.getCodigoOperadorRelacional()
+                || tk.getNum() == OperadorRelacionalEnum.MENOROUIGUAL.getCodigoOperadorRelacional()) {
+            this.getNextToken(arquivo);
         } else {
             System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um Op.Relacional era esperado.");
-            System.out.println("Ultimo token lido '" + tk.token + "'");
+            System.out.println("Ultimo token lido '" + tk.getToken() + "'");
             arquivo.close();
             System.exit(0);
         }
 
-        exprAritmetica(arquivo);
-
+        this.exprAritmetica(arquivo);
     }
 
     private void exprAritmetica(BufferedReader arquivo) throws IOException {
-        termo(arquivo);
-        exprArit(arquivo);
+        this.termo(arquivo);
+        this.exprArit(arquivo);
     }
 
     private void termo(BufferedReader arquivo) throws IOException {
-        fator(arquivo);
-        termoL(arquivo);
+        this.fator(arquivo);
+        this.termoL(arquivo);
     }
 
     private void fator(BufferedReader arquivo) throws IOException {
 
-        if (tk.num == ESP_ABRE_PARENT) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
-            exprAritmetica(arquivo);
-            if (tk.num == ESP_FECHA_PARENT) {
-                tk = scanner(arquivo);
-                checkComentError(arquivo);
-                System.out.println("\n-> " + tk.token);
+        if (tk.getNum() == CaracterEspecialEnum.ABREPARENTESES.getCodigoCaracterEspecial()) {
+            this.getNextToken(arquivo);
+            this.exprAritmetica(arquivo);
+            if (tk.getNum() == CaracterEspecialEnum.FECHAPARENTESES.getCodigoCaracterEspecial()) {
+                this.getNextToken(arquivo);
                 return;
             } else {
                 System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um ')' era esperado.");
-                System.out.println("Ultimo token lido '" + tk.token + "'");
+                System.out.println("Ultimo token lido '" + tk.getToken() + "'");
                 arquivo.close();
                 System.exit(0);
             }
 
         }
 
-        if (tk.num == ID || tk.num == CONST_INT
-                || tk.num == CONST_FLOAT || tk.num == CONST_CHAR) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
+        if (tk.getNum() == OutrosCodigosEnum.ID.getCodigo()
+                || tk.getNum() == ConstantesEnum.CONSTANTEINT.getCodigoConstante()
+                || tk.getNum() == ConstantesEnum.CONSTANTEFLOAT.getCodigoConstante()
+                || tk.getNum() == ConstantesEnum.CONSTANTECHAR.getCodigoConstante()) {
+            this.getNextToken(arquivo);
         } else {
             System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um identificador ou constante era esperado.");
-            System.out.println("Ultimo token lido '" + tk.token + "'");
+            System.out.println("Ultimo token lido '" + tk.getToken() + "'");
             arquivo.close();
             System.exit(0);
         }
@@ -804,185 +711,146 @@ public class Compilador {
 
     private void exprArit(BufferedReader arquivo) throws IOException {
 
-        if (tk.num == OP_ARIT_SOMA) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
-            termo(arquivo);
-            exprArit(arquivo);
-        } else if (tk.num == OP_ARIT_SUB) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
-            termo(arquivo);
-            exprArit(arquivo);
-        } else {
-            return;
+        if (tk.getNum() == OperadorAritmeticoEnum.SOMA.getCodigoOperadorAritmetico()) {
+            this.getNextToken(arquivo);
+            this.termo(arquivo);
+            this.exprArit(arquivo);
+        } else if (tk.getNum() == OperadorAritmeticoEnum.SUBTRACAO.getCodigoOperadorAritmetico()) {
+            this.getNextToken(arquivo);
+            this.termo(arquivo);
+            this.exprArit(arquivo);
         }
-
     }
 
     private void termoL(BufferedReader arquivo) throws IOException {
-        if (tk.num == OP_ARIT_MULT) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
-            fator(arquivo);
-            termoL(arquivo);
-        } else if (tk.num == OP_ARIT_DIV) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
-            fator(arquivo);
-            termoL(arquivo);
-        } else {
-            return;
+        if (tk.getNum() == OperadorAritmeticoEnum.MULTIPLICACAO.getCodigoOperadorAritmetico()) {
+            this.getNextToken(arquivo);
+            this.fator(arquivo);
+            this.termoL(arquivo);
+        } else if (tk.getNum() == OperadorAritmeticoEnum.DIVISAO.getCodigoOperadorAritmetico()) {
+            this.getNextToken(arquivo);
+            this.fator(arquivo);
+            this.termoL(arquivo);
         }
     }
 
     private void atribuicao(BufferedReader arquivo) throws IOException {
-        if (tk.num == ID) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
-            if (tk.num == OP_ARIT_ATRIBUICAO) {
-                tk = scanner(arquivo);
-                checkComentError(arquivo);
-                System.out.println("\n-> " + tk.token);
-                exprAritmetica(arquivo);
+
+        if (tk.getNum() == OutrosCodigosEnum.ID.getCodigo()) {
+            this.getNextToken(arquivo);
+            if (tk.getNum() == OperadorAritmeticoEnum.ATRIBUICAO.getCodigoOperadorAritmetico()) {
+                this.getNextToken(arquivo);
+                this.exprAritmetica(arquivo);
             } else {
                 System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um '=' era esperado.");
-                System.out.println("Ultimo token lido '" + tk.token + "'");
+                System.out.println("Ultimo token lido '" + tk.getToken() + "'");
                 arquivo.close();
                 System.exit(0);
             }
 
-            if (tk.num == ESP_PONTO_VIRGULA) {
-                tk = scanner(arquivo);
-                checkComentError(arquivo);
-                System.out.println("\n-> " + tk.token);
+            if (tk.getNum() == CaracterEspecialEnum.PONTOEVIRGULA.getCodigoCaracterEspecial()) {
+                this.getNextToken(arquivo);
             } else {
                 System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um ';' era esperado.");
-                System.out.println("Ultimo token lido '" + tk.token + "'");
+                System.out.println("Ultimo token lido '" + tk.getToken() + "'");
                 arquivo.close();
                 System.exit(0);
             }
         }
-
     }
 
     private void comandoBasico(BufferedReader arquivo) throws IOException {
 
-        if (tk.num == ID) {
-            atribuicao(arquivo);
+        if (tk.getNum() == OutrosCodigosEnum.ID.getCodigo()) {
+            this.atribuicao(arquivo);
             return;
         }
 
-        if (tk.num == ESP_ABRE_CHAVES) {
-            bloco(arquivo);
-            return;
+        if (tk.getNum() == CaracterEspecialEnum.ABRECHAVES.getCodigoCaracterEspecial()) {
+            this.bloco(arquivo);
         }
     }
 
     private void iteracao(BufferedReader arquivo) throws IOException {
 
-        if (tk.num == PAL_RESERV_DO) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
-            comando(arquivo);
-            if (tk.num == PAL_RESERV_WHILE) {
-                tk = scanner(arquivo);
-                checkComentError(arquivo);
-                System.out.println("\n-> " + tk.token);
-                if (tk.num == ESP_ABRE_PARENT) {
-                    tk = scanner(arquivo);
-                    checkComentError(arquivo);
-                    System.out.println("\n-> " + tk.token);
+        if (tk.getNum() == PalavrasReservadasEnum.DO.getCodigoPalavraReservada()) {
+            this.getNextToken(arquivo);
+            this.comando(arquivo);
+            if (tk.getNum() == PalavrasReservadasEnum.WHILE.getCodigoPalavraReservada()) {
+                this.getNextToken(arquivo);
+                if (tk.getNum() == CaracterEspecialEnum.ABREPARENTESES.getCodigoCaracterEspecial()) {
+                    this.getNextToken(arquivo);
                 } else {
                     System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um '(' era esperado.");
-                    System.out.println("Ultimo token lido '" + tk.token + "'");
+                    System.out.println("Ultimo token lido '" + tk.getToken() + "'");
                     arquivo.close();
                     System.exit(0);
                 }
 
-                exprRelacional(arquivo);
+                this.exprRelacional(arquivo);
 
-                if (tk.num == ESP_FECHA_PARENT) {
-                    tk = scanner(arquivo);
-                    checkComentError(arquivo);
-                    System.out.println("\n-> " + tk.token);
+                if (tk.getNum() == CaracterEspecialEnum.FECHAPARENTESES.getCodigoCaracterEspecial()) {
+                    this.getNextToken(arquivo);
                 } else {
                     System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um ')' era esperado.");
-                    System.out.println("Ultimo token lido '" + tk.token + "'");
+                    System.out.println("Ultimo token lido '" + tk.getToken() + "'");
                     arquivo.close();
                     System.exit(0);
                 }
 
-                if (tk.num == ESP_PONTO_VIRGULA) {
-                    tk = scanner(arquivo);
-                    checkComentError(arquivo);
-                    System.out.println("\n-> " + tk.token);
+                if (tk.getNum() == CaracterEspecialEnum.PONTOEVIRGULA.getCodigoCaracterEspecial()) {
+                    this.getNextToken(arquivo);
                     return;
-
                 } else {
                     System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um ';' era esperado.");
-                    System.out.println("Ultimo token lido '" + tk.token + "'");
+                    System.out.println("Ultimo token lido '" + tk.getToken() + "'");
                     arquivo.close();
                     System.exit(0);
                 }
-
             } else {
                 System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Palavra 'while' era esperada para contrução da estrutura DO-WHILE.");
-                System.out.println("Ultimo token lido '" + tk.token + "'");
+                System.out.println("Ultimo token lido '" + tk.getToken() + "'");
                 arquivo.close();
                 System.exit(0);
             }
 
-        }//Iteracao DO WHILE
+        } //Iteracao DO WHILE
 
-        if (tk.num == PAL_RESERV_WHILE) {
-            tk = scanner(arquivo);
-            checkComentError(arquivo);
-            System.out.println("\n-> " + tk.token);
-            if (tk.num == ESP_ABRE_PARENT) {
-                tk = scanner(arquivo);
-                checkComentError(arquivo);
-                System.out.println("\n-> " + tk.token);
+        if (tk.getNum() == PalavrasReservadasEnum.WHILE.getCodigoPalavraReservada()) {
+            this.getNextToken(arquivo);
+            if (tk.getNum() == CaracterEspecialEnum.ABREPARENTESES.getCodigoCaracterEspecial()) {
+                this.getNextToken(arquivo);
             } else {
                 System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um '(' era esperado.");
-                System.out.println("Ultimo token lido '" + tk.token + "'");
+                System.out.println("Ultimo token lido '" + tk.getToken() + "'");
                 arquivo.close();
                 System.exit(0);
             }
 
-            exprRelacional(arquivo);
+            this.exprRelacional(arquivo);
 
-            if (tk.num == ESP_FECHA_PARENT) {
-                tk = scanner(arquivo);
-                checkComentError(arquivo);
-                System.out.println("\n-> " + tk.token);
+            if (tk.getNum() == CaracterEspecialEnum.FECHAPARENTESES.getCodigoCaracterEspecial()) {
+                this.getNextToken(arquivo);
             } else {
                 System.out.println("\nL/C: " + linhas + "/" + colunas + " Erro: Um ')' era esperado.");
-                System.out.println("Ultimo token lido '" + tk.token + "'");
+                System.out.println("Ultimo token lido '" + tk.getToken() + "'");
                 arquivo.close();
                 System.exit(0);
             }
 
-            comando(arquivo);
-
-//           if(tk.num == ESP_PONTO_VIRGULA){
-//              tk = scanner(arquivo);
-//              checkComentError(arquivo);
-//              System.out.println("\n-> "+tk.token);
-//           }
-//           else{
-//              System.out.println("\nL/C: "+linhas+"/"+colunas+" Erro: Um ';' era esperado.'");
-//              System.out.println("Ultimo token lido '"+tk.token+"'");
-//              arquivo.close();
-//              System.exit(0);
-//           }
-
-        }// Iteracao WHILE
+            this.comando(arquivo);
+        } // Iteracao WHILE
     }
+
+    /**
+     * Método utilizado para obter o próximo token,
+     *
+     * @param arquivo Arquivo.
+     */
+    private void getNextToken(BufferedReader arquivo) throws IOException {
+        this.tk = this.scanner(arquivo);
+        this.checkComentError(arquivo);
+        System.out.println("\n-> " + this.tk.getToken());
+    }
+
 }

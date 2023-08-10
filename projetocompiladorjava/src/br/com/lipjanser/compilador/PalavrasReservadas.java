@@ -2,50 +2,13 @@ package br.com.lipjanser.compilador;
 
 public class PalavrasReservadas {
     
-    private String pMain = "main";
-    private String pIf = "if";
-    private String pElse = "else";
-    private String pWhile = "while";
-    private String pDo = "do";
-    private String pFor = "for";
-    private String pInt = "int";
-    private String pFloat = "float";
-    private String pChar = "char";
-
-    public String getpMain() {
-        return pMain;
-    }
-
-    public String getpIf() {
-        return pIf;
-    }
-
-    public String getpElse() {
-        return pElse;
-    }
-
-    public String getpWhile() {
-        return pWhile;
-    }
-
-    public String getpDo() {
-        return pDo;
-    }
-
-    public String getpFor() {
-        return pFor;
-    }
-
-    public String getpInt() {
-        return pInt;
-    }
-
-    public String getpFloat() {
-        return pFloat;
-    }
-
-    public String getpChar() {
-        return pChar;
-    }
-    
+    public static final String MAIN = "main";
+    public static final String IF = "if";
+    public static final String ELSE = "else";
+    public static final String WHILE = "while";
+    public static final String DO = "do";
+    public static final String FOR = "for";
+    public static final String INT = "int";
+    public static final String FLOAT = "float";
+    public static final String CHAR = "char";
 }
