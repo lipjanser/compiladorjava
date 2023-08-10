@@ -13,16 +13,8 @@ public enum ConstantesEnum {
         return codigoConstante;
     }
 
-    public void setCodigoConstante(int codigoConstante) {
-        this.codigoConstante = codigoConstante;
-    }
-
     public String getDescricaoConstante() {
         return descricaoConstante;
-    }
-
-    public void setDescricaoConstante(String descricaoConstante) {
-        this.descricaoConstante = descricaoConstante;
     }
 
     ConstantesEnum(int codigoConstante, String descricaoConstante) {

@@ -16,16 +16,8 @@ public enum CaracterEspecialEnum {
         return codigoCaracterEspecial;
     }
 
-    public void setCodigoCaracterEspecial(int codigoCaracterEspecial) {
-        this.codigoCaracterEspecial = codigoCaracterEspecial;
-    }
-
     public String getDescricaoCaracterEspecial() {
         return descricaoCaracterEspecial;
-    }
-
-    public void setDescricaoCaracterEspecial(String descricaoCaracterEspecial) {
-        this.descricaoCaracterEspecial = descricaoCaracterEspecial;
     }
 
     CaracterEspecialEnum(int codigoCaracterEspecial, String descricaoCaracterEspecial) {

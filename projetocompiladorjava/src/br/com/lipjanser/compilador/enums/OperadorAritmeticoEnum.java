@@ -15,16 +15,8 @@ public enum OperadorAritmeticoEnum {
         return codigoOperadorAritmetico;
     }
 
-    public void setCodigoOperadorAritmetico(int codigoOperadorAritmetico) {
-        this.codigoOperadorAritmetico = codigoOperadorAritmetico;
-    }
-
     public String getDescricaoOperadorAritmetico() {
         return descricaoOperadorAritmetico;
-    }
-
-    public void setDescricaoOperadorAritmetico(String descricaoOperadorAritmetico) {
-        this.descricaoOperadorAritmetico = descricaoOperadorAritmetico;
     }
 
     OperadorAritmeticoEnum(int codigoOperadorAritmetico, String descricaoOperadorAritmetico) {

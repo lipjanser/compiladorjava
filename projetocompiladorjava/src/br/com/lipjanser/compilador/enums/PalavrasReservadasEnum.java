@@ -19,16 +19,8 @@ public enum PalavrasReservadasEnum {
         return codigoPalavraReservada;
     }
 
-    public void setCodigoPalavraReservada(int codigoPalavraReservada) {
-        this.codigoPalavraReservada = codigoPalavraReservada;
-    }
-
     public String getDescricaoPalavraReservada() {
         return descricaoPalavraReservada;
-    }
-
-    public void setDescricaoPalavraReservada(String descricaoPalavraReservada) {
-        this.descricaoPalavraReservada = descricaoPalavraReservada;
     }
 
     PalavrasReservadasEnum(int codigoPalavraReservada, String descricaoPalavraReservada) {
