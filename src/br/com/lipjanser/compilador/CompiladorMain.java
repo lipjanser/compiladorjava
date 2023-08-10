@@ -37,7 +37,7 @@ public class CompiladorMain {
 
     public static void main(String[] args) throws IOException {
 
-        if(args[0] != null) {
+        if(args != null) {
             if(!args[0].isEmpty()) {
                 BufferedReader arquivo = new BufferedReader(new FileReader(args[0]));
                 Compilador comp = new Compilador();
